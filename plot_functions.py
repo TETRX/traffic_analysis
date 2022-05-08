@@ -13,10 +13,16 @@ import matplotlib.colors as mcolors
 
 
 
-def basic_plot(G, node_weights, title, path=None):
-
+def basic_plot(G, node_weights, title, path=None, special_edges = None):
+    edge_color=None
+    edge_width = 1
+    if special_edges is not None:
+        edge_color = ["red" if (u,v) in special_edges or (v,u) in special_edges else "white" for u,v,k in G.edges(keys=True)]
+        edge_width = [3 if (u,v) in special_edges or (v,u) in special_edges else 1 for u,v,k in G.edges(keys=True)]
     if isinstance(node_weights, pd.DataFrame):
         node_weights = {row[0]: row[1] for i, row in node_weights.iterrows()}
+
+    
     min_val = min(node_weights.values())
     max_val = max(node_weights.values())
     node_weights = {key: (val-min_val) / (max_val-min_val) for key, val in node_weights.items()}
@@ -24,7 +30,7 @@ def basic_plot(G, node_weights, title, path=None):
     nx.set_node_attributes(G, values=node_weights, name=title)
     color_map = ox.plot.get_node_colors_by_attr(G, title, cmap="jet")
     node_size = [val*50+15 for val in node_weights.values()]
-    ox.plot_graph(G, node_color=color_map, node_size=node_size, figsize=(55, 55), show=False, save=True, filepath=path)
+    ox.plot_graph(G, edge_color=edge_color, edge_linewidth=edge_width, node_color=color_map, node_size=node_size, figsize=(55, 55), show=False, save=True, filepath=path)
     if path:
         plt.savefig(path)
     plt.show()
