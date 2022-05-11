@@ -14,7 +14,7 @@ import matplotlib.colors as mcolors
 
 
 def basic_plot(G, node_weights, title, path=None, special_edges = None):
-    edge_color=None
+    edge_color="white"
     edge_width = 1
     if special_edges is not None:
         edge_color = ["red" if (u,v) in special_edges or (v,u) in special_edges else "white" for u,v,k in G.edges(keys=True)]
