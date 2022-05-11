@@ -13,7 +13,7 @@ import matplotlib.colors as mcolors
 
 
 
-def basic_plot(G, node_weights, title, path=None, special_edges = None):
+def basic_plot(G, node_weights, title, path=None, special_edges = None, change_sizes=True):
     edge_color="white"
     edge_width = 1
     if special_edges is not None:
@@ -25,11 +25,17 @@ def basic_plot(G, node_weights, title, path=None, special_edges = None):
     
     min_val = min(node_weights.values())
     max_val = max(node_weights.values())
+    print(f"Range: {min_val} - {max_val}")
     node_weights = {key: (val-min_val) / (max_val-min_val) for key, val in node_weights.items()}
 
     nx.set_node_attributes(G, values=node_weights, name=title)
     color_map = ox.plot.get_node_colors_by_attr(G, title, cmap="jet")
-    node_size = [val*50+15 for val in node_weights.values()]
+
+    if change_sizes:
+        node_size = [val*50+15 for val in node_weights.values()]
+    else:
+        node_size = 15
+    
     ox.plot_graph(G, edge_color=edge_color, edge_linewidth=edge_width, node_color=color_map, node_size=node_size, figsize=(55, 55), show=False, save=True, filepath=path)
     if path:
         plt.savefig(path)
