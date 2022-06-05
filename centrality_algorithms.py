@@ -46,7 +46,7 @@ def betweenness_centrality_parallel(G, processes=None, weight=None, path=None):
 
 
 def pagerank(G, weights=None, path=None):
-    wpr_dict = nx.pagerank(G, weight=weights)
+    wpr_dict = nx.pagerank_numpy(G, weight=weights)
     if path:
         df = pd.DataFrame([[k, v] for k, v in wpr_dict.items()], columns=["node_id", "value"])
         df.to_csv(path)
@@ -63,7 +63,7 @@ def clustering_coefficient(G, weight=None, path=None):
 
 
 def eigenvector_centrality(G, weight=None, path=None):
-    wec_dict = nx.eigenvector_centrality_numpy(G, weight=weight)
+    wec_dict = nx.eigenvector_centrality(G, weight=weight)
     if path:
         df = pd.DataFrame([[k, v] for k, v in wec_dict.items()], columns=["node_id", "value"])
         df.to_csv(path)
