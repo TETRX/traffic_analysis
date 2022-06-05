@@ -1,0 +1,15 @@
+HIGHWAY_WEIGHTS = {
+    'residential': 2,
+    'tertiary': 2,
+    'living_street': 4,
+    'secondary': 6,
+    'unclassified': 1,
+    'primary': 8,
+    'secondary_link': 5,
+    'tertiary_link': 5,
+    'primary_link': 5,
+    'motorway_link': 5,
+    'motorway': 10,
+    'trunk_link': 5,
+    'trunk': 10,
+}
