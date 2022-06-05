@@ -1,3 +1,7 @@
+from typing import (
+    List,
+    Tuple,
+)
 
 import osmnx as ox
 import networkx as nx
@@ -11,6 +15,9 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 
+from centrality_algorithms import betweenness_centrality_parallel, pagerank, \
+    weighted_eccentricity, clustering_coefficient
+from config import HIGHWAY_WEIGHTS
 
 
 def basic_plot(G, node_weights, title, path=None, special_edges = None, annotate = False):
@@ -64,22 +71,6 @@ def _get_color_map(vmin: int, vmax: int):
 
 
 def plot_graph_on_map(g, bc_weights, area, path=None):
-    highway_weights = {
-        'residential': 2,
-        'tertiary': 2,
-        'living_street': 4,
-        'secondary': 6,
-        'unclassified': 1,
-        'primary': 8,
-        'secondary_link': 5,
-        'tertiary_link': 5,
-        'primary_link': 5,
-        'motorway_link': 5,
-        'motorway': 10,
-        'trunk_link': 5,
-        'trunk': 10,
-    }
-
     bc_weights = {row[0]: row[1] for i, row in bc_weights.iterrows()}
 
     nodes, edges = ox.graph_to_gdfs(g)
@@ -92,7 +83,7 @@ def plot_graph_on_map(g, bc_weights, area, path=None):
     bc_weights = {k: v for k, v in bc_weights.items() if int(k) in nodes.index}
 
     node_color_map = _get_color_map(min(bc_weights.values()), max(bc_weights.values()))
-    edge_color_map = _get_color_map(min(highway_weights.values()), max(highway_weights.values()))
+    edge_color_map = _get_color_map(min(HIGHWAY_WEIGHTS.values()), max(HIGHWAY_WEIGHTS.values()))
 
     f = folium.Figure(width=800, height=500)
     m = folium.Map(location=[(area.lati_min + area.lati_max) / 2, (area.long_min + area.long_max) / 2],
@@ -116,9 +107,34 @@ def plot_graph_on_map(g, bc_weights, area, path=None):
             end_point = nodes.iloc[nodes.index == end_node_id]['y'].values[0], \
                         nodes.iloc[nodes.index == end_node_id]['x'].values[0]
 
-            color = edge_color_map(highway_weights[row['highway']])
+            color = edge_color_map(HIGHWAY_WEIGHTS[row['highway']])
             folium.PolyLine([start_point, end_point], color=color, weight=2, opacity=0.5).add_to(m)
     return m
+
+
+def plot_new_roads(g, special_edges: List[Tuple[int, int]], plot_title):
+    special_nodes = set()
+    for (u, v) in special_edges:
+        special_nodes.add(u)
+        special_nodes.add(v)
+
+    _dict={node: int(node in special_nodes) for node in g.nodes}
+    basic_plot(g, _dict, title=plot_title, special_edges=special_edges)
+
+def plot_centralities(g, title: str):
+    path_title = title.lower().replace(' ', '_')
+
+    bc_dict = betweenness_centrality_parallel(g, processes=16)
+    basic_plot(g, bc_dict, f'Betweenness Centrality - with {title}', path=f'images/betweenness_{path_title}.png')
+
+    cc_dict = clustering_coefficient(g)
+    basic_plot(g, cc_dict, f'Clustering Coefficient - with {title}', path=f'images/clustering_{path_title}.png')
+
+    we_dict = weighted_eccentricity(g, 'length')
+    basic_plot(g, we_dict, f'Weighted Eccentricity - with {title}', path=f'images/eccentricity_{path_title}.png')
+
+    pagerank_dict = pagerank(g)
+    basic_plot(g, pagerank_dict, f'Pagerank - with {title}', path=f'images/pagerank_{path_title}.png')
 
 
 if __name__ == '__main__':
