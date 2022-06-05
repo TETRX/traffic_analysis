@@ -37,8 +37,7 @@ def basic_plot(G, node_weights, title, path=None, special_edges = None, change_s
         node_size = 15
     
     ox.plot_graph(G, edge_color=edge_color, edge_linewidth=edge_width, node_color=color_map, node_size=node_size, figsize=(55, 55), show=False, save=True, filepath=path)
-    if path:
-        plt.savefig(path)
+
     plt.show()
 
 
