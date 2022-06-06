@@ -69,10 +69,12 @@ def eigenvector_centrality(G, weight=None, path=None):
         df.to_csv(path)
     return wec_dict
 
-def weighted_eccentricity(graph, weight):
-    shortest_paths = nx.shortest_path_length(graph, weight=weight)
-    shortest_paths = {source : dictionary for source,dictionary in shortest_paths}
-    return nx.eccentricity(graph,sp=shortest_paths)
+def weighted_eccentricity(graph, weight=None, path=None):
+    ecc_dict = nx.eccentricity(graph)
+    if path:
+        df = pd.DataFrame([[k, v] for k, v in ecc_dict.items()], columns=["node_id", "value"])
+        df.to_csv(path)
+    return ecc_dict
 
 if __name__ == '__main__':
 

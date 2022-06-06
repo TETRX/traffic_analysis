@@ -20,29 +20,71 @@ from centrality_algorithms import betweenness_centrality_parallel, pagerank, \
 from config import HIGHWAY_WEIGHTS
 
 
-def basic_plot(G, node_weights, title, path=None, special_edges = None, annotate = False):
-    edge_color=None
+def basic_plot(
+        G,
+        node_weights,
+        title,
+        path=None,
+        special_edges=None,
+        change_sizes=True,
+        show_plot=True
+        ):
+    edge_color = "white"
     edge_width = 1
     if special_edges is not None:
-        edge_color = ["red" if (u,v) in special_edges or (v,u) in special_edges else "white" for u,v,k in G.edges(keys=True)]
-        edge_width = [3 if (u,v) in special_edges or (v,u) in special_edges else 1 for u,v,k in G.edges(keys=True)]
-    if isinstance(node_weights, pd.DataFrame):
+        edge_color = ["red" if (u, v) in special_edges or (v, u) in special_edges else "white" for u, v, k in G.edges(
+            keys=True
+            )]
+        edge_width = [3 if (u, v) in special_edges or (v, u) in special_edges else 1 for u, v, k in G.edges(
+            keys=True
+            )]
+    if isinstance(
+            node_weights,
+            pd.DataFrame
+            ):
         node_weights = {row[0]: row[1] for i, row in node_weights.iterrows()}
 
-    
-    min_val = min(node_weights.values())
-    max_val = max(node_weights.values())
-    node_weights = {key: (val-min_val) / (max_val-min_val) if max_val != min_val else 1 for key, \
-                                                                                        val in node_weights.items()}
+    min_val = min(
+        node_weights.values()
+        )
+    max_val = max(
+        node_weights.values()
+        )
+    print(
+        f"Range: {min_val} - {max_val}"
+        )
+    node_weights = {key: (val - min_val) / (max_val - min_val) for key, val in node_weights.items()}
 
-    nx.set_node_attributes(G, values=node_weights, name=title)
-    color_map = ox.plot.get_node_colors_by_attr(G, title, cmap="jet")
-    node_size = [val*50+15 for val in node_weights.values()]
-    fig, ax = ox.plot_graph(G, edge_color=edge_color, edge_linewidth=edge_width, node_color=color_map,
-                         node_size=node_size, figsize=(55, 55), show=False, save=True, filepath=path)
-    if path:
-        plt.savefig(path)
-    plt.show()
+    nx.set_node_attributes(
+        G,
+        values=node_weights,
+        name=title
+        )
+    color_map = ox.plot.get_node_colors_by_attr(
+        G,
+        title,
+        cmap="jet"
+        )
+
+    if change_sizes:
+        node_size = [val * 50 + 15 for val in node_weights.values()]
+    else:
+        node_size = 15
+
+    ox.plot_graph(
+        G,
+        edge_color=edge_color,
+        edge_linewidth=edge_width,
+        node_color=color_map,
+        node_size=node_size,
+        figsize=(55, 55),
+        show=False,
+        save=True,
+        filepath=path
+        )
+
+    if show_plot:
+        plt.show()
 
 
 Coords = namedtuple("Coords", "long_min long_max lati_min lati_max")
@@ -118,23 +160,34 @@ def plot_new_roads(g, special_edges: List[Tuple[int, int]], plot_title):
         special_nodes.add(u)
         special_nodes.add(v)
 
-    _dict={node: int(node in special_nodes) for node in g.nodes}
-    basic_plot(g, _dict, title=plot_title, special_edges=special_edges)
+    path_title = plot_title.lower().replace(' ', '_')
 
-def plot_centralities(g, title: str):
+    _dict={node: int(node in special_nodes) for node in g.nodes}
+    basic_plot(g, _dict, title=plot_title, special_edges=special_edges, path=f'images/{path_title}.png')
+
+def plot_centralities(g, title: str, show_plots = False):
     path_title = title.lower().replace(' ', '_')
 
-    bc_dict = betweenness_centrality_parallel(g, processes=16)
-    basic_plot(g, bc_dict, f'Betweenness Centrality - with {title}', path=f'images/betweenness_{path_title}.png')
+    bc_dict = betweenness_centrality_parallel(g, processes=16, path=f'values/betweenness_{path_title}.csv')
+    basic_plot(g, bc_dict, f'Betweenness Centrality - with {title}', path=f'images/betweenness_{path_title}.png',
+               show_plot=show_plots)
+    del bc_dict
 
-    cc_dict = clustering_coefficient(g)
-    basic_plot(g, cc_dict, f'Clustering Coefficient - with {title}', path=f'images/clustering_{path_title}.png')
+    cc_dict = clustering_coefficient(g, path=f'values/clustering_{path_title}.csv')
+    basic_plot(g, cc_dict, f'Clustering Coefficient - with {title}', path=f'images/clustering_{path_title}.png',
+               show_plot=show_plots)
+    del cc_dict
 
-    we_dict = weighted_eccentricity(g, 'length')
-    basic_plot(g, we_dict, f'Weighted Eccentricity - with {title}', path=f'images/eccentricity_{path_title}.png')
+    if nx.is_strongly_connected(g):
+        we_dict = weighted_eccentricity(g, path=f'values/eccentricity_{path_title}.csv')
+        basic_plot(g, we_dict, f'Weighted Eccentricity - with {title}', path=f'images/eccentricity_{path_title}.png',
+                   show_plot=show_plots)
+        del we_dict
 
-    pagerank_dict = pagerank(g)
-    basic_plot(g, pagerank_dict, f'Pagerank - with {title}', path=f'images/pagerank_{path_title}.png')
+    pagerank_dict = pagerank(g, path=f'values/pagerank_{path_title}.csv')
+    basic_plot(g, pagerank_dict, f'Pagerank - with {title}', path=f'images/pagerank_{path_title}.png',
+               show_plot=show_plots)
+    del pagerank_dict
 
 
 if __name__ == '__main__':
