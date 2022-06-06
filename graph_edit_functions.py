@@ -2,10 +2,12 @@ import pandas as pd
 from typing import (
     List,
     Tuple,
+    Set,
 )
 
 import osmnx as ox
 import networkx as nx
+import pandas as pd
 from shapely.geometry import Point, LineString
 
 
@@ -104,3 +106,9 @@ def remove_street(g: nx.MultiDiGraph, edges, street_name: str):
         remove_edge(g, u, v)
         removed_edges.append((u, v))
     return removed_edges
+
+
+def read_nodes_dict_from_csv(path: str):
+    values_df = pd.read_csv(path, index_col=0)
+    values_dict = {row[0]: row[1] for i, row in values_df.iterrows()}
+    return values_dict
