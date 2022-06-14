@@ -15,9 +15,9 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 
-from centrality_algorithms import betweenness_centrality_parallel, pagerank, \
+from src.centrality_algorithms import betweenness_centrality_parallel, pagerank, \
     weighted_eccentricity, clustering_coefficient
-from config import HIGHWAY_WEIGHTS
+from src.config import HIGHWAY_WEIGHTS
 
 
 def basic_plot(
